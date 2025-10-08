@@ -8,7 +8,7 @@ st.title("📘 AI Summarizer & Question Answering")
 
 @st.cache_resource
 def load_models():
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+    summarizer = pipeline("summarization", model="pszemraj/long-t5-tglobal-large-sci-summarizer")
     qa = pipeline("question-answering", model="deepset/roberta-base-squad2")
     return summarizer, qa
 
