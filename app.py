@@ -24,24 +24,37 @@ def summarize_large_text(text, chunk_size=1000):
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or text file", type=["pdf", "txt"])
 
-text = ""
+if "summary" not in st.session_state:
+    st.session_state.summary = ""
+if "text" not in st.session_state:
+    st.session_state.text = ""
+
 if uploaded_file:
     if uploaded_file.type == "application/pdf":
         reader = PyPDF2.PdfReader(uploaded_file)
-        text = "\n".join([page.extract_text() or "" for page in reader.pages])
+        st.session_state.text = "\n".join([page.extract_text() or "" for page in reader.pages])
     else:
-        text = uploaded_file.read().decode("utf-8")
+        st.session_state.text = uploaded_file.read().decode("utf-8")
 
-if text:
+if st.session_state.text:
     st.subheader("🧾 Summarization")
-    with st.spinner("Summarizing, please wait..."):
-        summary = summarize_large_text(text)
-    st.write(summary)
-    st.download_button("⬇️ Download Summary", summary, "summary.txt")
+
+    if st.button("✨ Generate Summary"):
+        with st.spinner("Summarizing, please wait..."):
+            st.session_state.summary = summarize_large_text(st.session_state.text)
+        st.success("✅ Summary generated!")
+
+    if st.session_state.summary:
+        st.write(st.session_state.summary)
+        st.download_button("⬇️ Download Summary", st.session_state.summary, "summary.txt")
 
     st.subheader("💬 Ask a Question")
     question = st.text_input("Type your question about the text:")
-    if question:
-        with st.spinner("Thinking..."):
-            answer = qa(question=question, context=text)["answer"]
-        st.success(f"**Answer:** {answer}")
+
+    if st.button("🤖 Get Answer"):
+        if question.strip():
+            with st.spinner("Thinking..."):
+                answer = qa(question=question, context=st.session_state.text)["answer"]
+            st.success(f"**Answer:** {answer}")
+        else:
+            st.warning("Please enter a question first!")
