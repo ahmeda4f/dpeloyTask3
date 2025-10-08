@@ -31,17 +31,23 @@ if "text" not in st.session_state:
 
 if uploaded_file:
     if uploaded_file.type == "application/pdf":
-        reader = PyPDF2.PdfReader(uploaded_file)
-        st.session_state.text = "\n".join([page.extract_text() or "" for page in reader.pages])
+        try:
+            reader = PyPDF2.PdfReader(uploaded_file)
+            st.session_state.text = "\n".join([page.extract_text() or "" for page in reader.pages])
+        except Exception as e:
+            st.error(f"Error reading PDF: {e}")
     else:
         st.session_state.text = uploaded_file.read().decode("utf-8")
 
 if st.session_state.text:
     st.subheader("🧾 Summarization")
 
-    if st.button("✨ Generate Summary"):
+    if st.button("🧠 Summarize Text"):
         with st.spinner("Summarizing, please wait..."):
-            st.session_state.summary = summarize_large_text(st.session_state.text)
+            if len(st.session_state.text) < 200:
+                st.warning("The text is too short to summarize effectively.")
+            else:
+                st.session_state.summary = summarize_large_text(st.session_state.text)
         st.success("✅ Summary generated!")
 
     if st.session_state.summary:
@@ -54,7 +60,8 @@ if st.session_state.text:
     if st.button("Get Answer"):
         if question.strip():
             with st.spinner("Thinking..."):
-                answer = qa(question=question, context=st.session_state.text)["answer"]
+                context = st.session_state.summary if st.session_state.summary else st.session_state.text
+                answer = qa(question=question, context=context)["answer"]
             st.success(f"**Answer:** {answer}")
         else:
             st.warning("Please enter a question first!")
