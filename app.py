@@ -51,7 +51,7 @@ if st.session_state.text:
     st.subheader("💬 Ask a Question")
     question = st.text_input("Type your question about the text:")
 
-    if st.button("🤖 Get Answer"):
+    if st.button("Get Answer"):
         if question.strip():
             with st.spinner("Thinking..."):
                 answer = qa(question=question, context=st.session_state.text)["answer"]
